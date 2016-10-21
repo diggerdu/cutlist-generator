@@ -173,4 +173,4 @@ if __name__ == '__main__':
 
     args = parser.parse_args()
     dsd = dsdtools.DB()
-    generate_previews(dsd, write_estimates=False)
+    generate_previews(dsd, write_estimates=True)
