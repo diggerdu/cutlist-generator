@@ -14,7 +14,7 @@ The idea is to generate excerpts of 30s [1]
 
 ### Download Previews
 
-* Pre-computed preview segmentes [can be downloaded here](https://github.com/faroit/sisec-mus-previews/releases/tag/v0.1)
+* Pre-computed preview segmentes [can be downloaded here](https://github.com/sigsep/sigsep-mus-previews/releases/download/v0.2/30s_previews.csv)
 
 ### References
 
