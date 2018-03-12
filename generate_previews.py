@@ -1,6 +1,5 @@
 from __future__ import division
-import dsdtools
-import argparse
+import musdb
 import numpy as np
 from scipy.stats.mstats import gmean
 import csv
@@ -11,9 +10,10 @@ import scipy.signal
 def crop_track(track, start_pos, end_pos):
     estimates = {}
     # crop target track and save it as estimate
-    for source_name, source_track in track.sources.iteritems():
-        estimates[source_name] = source_track.audio[start_pos:end_pos]
+    for target_name, target_track in track.targets.items():
+        estimates[target_name] = target_track.audio[start_pos:end_pos]
 
+    estimates['mixture'] = track.audio[start_pos:end_pos]
     return estimates
 
 
@@ -101,7 +101,7 @@ def hwr(x):
 
 def compute_H_max(
     track,
-    exerpt_window_in_s=30,
+    preview_length=30,
     short_window=4096,
     short_hop=2
 ):
@@ -113,7 +113,7 @@ def compute_H_max(
     )
 
     longterm_win = int(
-        track.rate * exerpt_window_in_s / short_window * short_hop
+        track.rate * preview_length / short_window * short_hop
     )
     H_frames = librosa.util.frame(
         H,
@@ -130,7 +130,7 @@ def compute_H_max(
     activities = gmean(np.maximum(H_frames, np.finfo(float).eps), axis=0)
 
     excerpt = H_time_in_samples[(0, -1), np.argmax(activities)]
-    excerpt[-1] = excerpt[0] + (exerpt_window_in_s * track.rate)
+    excerpt[-1] = excerpt[0] + (preview_length * track.rate)
 
     if excerpt[-1] >= track.audio.shape[0]:
         # shift excerpt to left
@@ -143,34 +143,28 @@ def compute_H_max(
     return start_sample, end_sample
 
 
-def generate_previews(dsd, write_estimates=True):
-    with open('previews.csv', 'wb') as csvfile:
+def generate_previews(dsd, write_estimates=True, preview_length=30):
+    with open('previews.csv', 'w') as csvfile:
         writer = csv.writer(csvfile, delimiter=',')
 
-        for i, track in enumerate(dsd.load_dsd_tracks()):
-            print(track.filename)
-            start_sample, end_sample = compute_H_max(track)
-            writer.writerow([track.id, start_sample, end_sample])
+        for i, track in enumerate(mus.load_mus_tracks()):
+            if track.duration < preview_length:
+                continue
+
+            print(track.name)
+            start_sample, end_sample = compute_H_max(
+                track, preview_length=preview_length
+            )
+            writer.writerow([track.name, start_sample, end_sample])
 
             if write_estimates:
-                dsd._save_estimates(
+                mus._save_estimates(
                     crop_track(track, start_sample, end_sample),
                     track,
                     estimates_dir='.'
                 )
 
+
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser(
-        description='Parse SISEC dataset')
-
-    parser.add_argument(
-        'dsd_folder',
-        nargs='?',
-        default=None,
-        type=str,
-        help='dsd 100 Folder'
-    )
-
-    args = parser.parse_args()
-    dsd = dsdtools.DB()
-    generate_previews(dsd, write_estimates=True)
+    mus = musdb.DB()
+    generate_previews(mus, write_estimates=True)

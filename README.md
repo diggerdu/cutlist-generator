@@ -1,14 +1,14 @@
-# SISEC MUS 30s Preview Generator
+# SIGSEP MUS 30s Preview Generator
 
-This repository aims to generate 30s preview samples from the __demixing secrets dataset (DSD)__. This project is part of the [MUS task](https://sisec.inria.fr/home/2016-professionally-produced-music-recordings/) of the [Signal Separation Evaluation Campaign (SISEC)](https://sisec.inria.fr/).
+This repository aims to generate 30s excerpts from the [MUSDB18](https://sigsep.github.io/musdb.html) music data set.
 
 ### Method
 
-See [1]
+The idea is to generate excerpts of 30s [1]
 
 ### Usage
 
-* Install python requirements using `pip install -r requirements.txt`
+* Install python3.6 requirements using `pip install -r requirements.txt`
 * Run `generate_previews.py`
 * For further applications, you can use the [previews trim generator](https://github.com/faroit/sisec-mus-trim)
 
