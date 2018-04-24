@@ -57,7 +57,7 @@ def create_activation_annotation(
 
     # list to numpy array
     H = np.array(H)
-    print(H.shape)
+
     # normalization (to overall energy and # of sources)
     E0 = np.sum(H, axis=0)
 
@@ -142,63 +142,77 @@ def compute_H_max(
     track,
     preview_length=30,
     short_window=4096,
-    short_hop=2
 ):
 
     # compute track_activity
-    H, time_in_samples = create_activation_annotation(
+    H, time_in_seconds = create_activation_annotation(
         track,
         win_len=short_window
     )
-    longterm_win = int(
-        track.rate * preview_length / short_window * short_hop
-    )
+
+    longterm_win = int(track.rate * preview_length / (short_window // 2))
+
     H_frames = librosa.util.frame(
         H,
         frame_length=longterm_win,
         hop_length=1
     )
 
-    H_time_in_samples = librosa.util.frame(
-        time_in_samples,
+    H_time_in_seconds = librosa.util.frame(
+        time_in_seconds,
         frame_length=longterm_win,
         hop_length=1
     )
 
     activities = gmean(np.maximum(H_frames, np.finfo(float).eps), axis=0)
 
-    excerpt = H_time_in_samples[(0, -1), np.argmax(activities)]
+    excerpt = H_time_in_seconds[(0, -1), np.argmax(activities)]
 
-    excerpt[-1] = excerpt[0] + (preview_length * track.rate)
+    excerpt[-1] = excerpt[0] + preview_length
 
     if excerpt[-1] >= track.audio.shape[0]:
         # shift excerpt to left
         print("Shift was needed")
         excerpt -= excerpt[-1] - track.audio.shape[0]
 
-    start_sample = int(np.ceil(excerpt[0]))
-    end_sample = int(np.ceil(excerpt[1]))
+    start_second = int(np.floor(excerpt[0]))
+    end_second = int(np.floor(excerpt[1]))
 
-    return start_sample, end_sample
+    # round to nearest second
+    start_sample = start_second * track.rate
+    end_sample = end_second * track.rate
+
+    sample_pos = (start_sample, end_sample)
+    time_pos = (start_second, end_second)
+
+    return sample_pos, time_pos
 
 
 def generate_previews(dsd, write_estimates=True, preview_length=30):
     with open('previews.csv', 'w') as csvfile:
         writer = csv.writer(csvfile, delimiter=',')
 
-        for i, track in enumerate(mus.load_mus_tracks()):
+        for i, track in enumerate(mus.load_mus_tracks(subsets=['test'])):
             if track.duration < preview_length:
                 continue
 
             print(track.name)
-            start_sample, end_sample = compute_H_max(
+            sample_pos, time_pos = compute_H_max(
                 track, preview_length=preview_length
             )
-            writer.writerow([track.name, start_sample, end_sample])
+            writer.writerow(
+                [
+                    track.name,
+                    sample_pos[0],
+                    sample_pos[1],
+                    time_pos[0],
+                    time_pos[1]
+                ]
+            )
 
             if write_estimates:
                 mus._save_estimates(
-                    crop_track(track, start_sample, end_sample),
+                    crop_track(track, sample_pos[0], sample_pos[1]),
                     track,
                     estimates_dir='.'
                 )
