@@ -7,71 +7,104 @@ import librosa
 import scipy.signal
 
 
-def crop_track(track, start_pos, end_pos):
-    estimates = {}
-    # crop target track and save it as estimate
-    for target_name, target_track in track.targets.items():
-        estimates[target_name] = target_track.audio[start_pos:end_pos]
-
-    estimates['mixture'] = track.audio[start_pos:end_pos]
-    return estimates
-
-
 def create_activation_annotation(
     track,
     win_len=4096,
     lpf_cutoff=0.075,
     theta=0.15,
-    binarize=False
+    binarize=False,
+    var_lambda=20.0,
+    amplitude_threshold=0.01
 ):
+    """
+    Create the activation confidence annotation for a multitrack. The final
+    activation matrix is computed as:
+        `C[i, t] = 1 - (1 / (1 + e**(var_lambda * (H[i, t] - theta))))`
+    where H[i, t] is the energy of stem `i` at time `t`
 
+    Taken from
+    https://github.com/marl/medleydb/blob/master/medleydb/annotate/activation_conf.py
+
+    Parameters
+    ----------
+    track : Track
+        Musdb Track Object
+    win_len : int, default=4096
+        Number of samples in each window
+    lpf_cutoff : float, default=0.075
+        Lowpass frequency cutoff fraction
+    theta : float
+        Controls the threshold of activation.
+    var_labmda : float
+        Controls the slope of the threshold function.
+    amplitude_threshold : float
+        Energies below this value are set to 0.0
+    Returns
+    -------
+    C : np.array
+        Array of activation confidence values shape (n_conf, n_stems)
+    stem_index_list : list
+        List of stem indices in the order they appear in C
+
+    """
     H = []
 
     # MATLAB equivalent to @hanning(win_len)
     win = scipy.signal.windows.hann(win_len + 2)[1:-1]
 
-    for key, source in track.sources.items():
-        H.append(track_activation(source.audio, win_len, win))
+    for name, source in track.sources.items():
+        H.append(track_energy(source.audio, win_len, win))
 
     # list to numpy array
     H = np.array(H)
-
+    print(H.shape)
     # normalization (to overall energy and # of sources)
     E0 = np.sum(H, axis=0)
 
     H = len(track.sources) * H / np.max(E0)
 
     # binary thresholding for low overall energy events
-    mask = np.ones(H.shape)
-    mask[:, E0 < 0.01] = 0
-    H = H * mask
+    H[:, E0 < amplitude_threshold] = 0.0
 
     # LP filter
     b, a = scipy.signal.butter(2, lpf_cutoff, 'low')
     H = scipy.signal.filtfilt(b, a, H, axis=1)
 
+    # logistic function to semi-binarize the output; confidence value
+    C = 1.0 - (1.0 / (1.0 + np.exp(np.dot(var_lambda, (H - theta)))))
+
     # add time column
-    time_in_samples = librosa.core.frames_to_samples(
-        np.arange(H.shape[1]), hop_length=win_len // 2
+    time = librosa.core.frames_to_time(
+        np.arange(C.shape[1]), sr=track.rate, hop_length=win_len // 2
     )
 
-    # logistic function to semi-binarize the output; confidence value
-    H = 1 - 1 / (1 + np.exp(np.dot(20, (H - theta))))
-
-    return np.sum(H.T, axis=1), time_in_samples
+    # sum up all sources as we are only interested in the peak joint activity
+    return np.sum(C.T, axis=1), time
 
 
-def track_activation(wave, win_len, win):
+def track_energy(wave, win_len, win):
+    """Compute the energy of an audio signal
+    Parameters
+    ----------
+    wave : np.array
+        The signal from which to compute energy
+    win_len: int
+        The number of samples to use in energy computation
+    win : np.array
+        The windowing function to use in energy computation
+    Returns
+    -------
+    energy : np.array
+        Array of track energy
+    """
     hop_len = win_len // 2
 
+    # convert to mono
     wave = np.mean(wave, axis=1)
 
     wave = np.lib.pad(
         wave,
-        pad_width=(
-            win_len-hop_len,
-            0
-        ),
+        pad_width=(win_len-hop_len, 0),
         mode='constant',
         constant_values=0
     )
@@ -82,11 +115,7 @@ def track_activation(wave, win_len, win):
     )
 
     # cut into frames
-    wavmat = librosa.util.frame(
-        wave,
-        frame_length=win_len,
-        hop_length=hop_len
-    )
+    wavmat = librosa.util.frame(wave, frame_length=win_len, hop_length=hop_len)
 
     # Envelope follower
     wavmat = hwr(wavmat) ** 0.5  # half-wave rectification + compression
@@ -95,7 +124,17 @@ def track_activation(wave, win_len, win):
 
 
 def hwr(x):
-    ''' half-wave rectification'''
+    """ Half-wave rectification.
+    Parameters
+    ----------
+    x : array-like
+        Array to half-wave rectify
+    Returns
+    -------
+    x_hwr : array-like
+        Half-wave rectified array
+    """
+
     return (x + np.abs(x)) / 2
 
 
@@ -111,7 +150,6 @@ def compute_H_max(
         track,
         win_len=short_window
     )
-
     longterm_win = int(
         track.rate * preview_length / short_window * short_hop
     )
@@ -130,6 +168,7 @@ def compute_H_max(
     activities = gmean(np.maximum(H_frames, np.finfo(float).eps), axis=0)
 
     excerpt = H_time_in_samples[(0, -1), np.argmax(activities)]
+
     excerpt[-1] = excerpt[0] + (preview_length * track.rate)
 
     if excerpt[-1] >= track.audio.shape[0]:
@@ -137,8 +176,8 @@ def compute_H_max(
         print("Shift was needed")
         excerpt -= excerpt[-1] - track.audio.shape[0]
 
-    start_sample = excerpt[0]
-    end_sample = excerpt[1]
+    start_sample = int(np.ceil(excerpt[0]))
+    end_sample = int(np.ceil(excerpt[1]))
 
     return start_sample, end_sample
 
@@ -163,6 +202,16 @@ def generate_previews(dsd, write_estimates=True, preview_length=30):
                     track,
                     estimates_dir='.'
                 )
+
+
+def crop_track(track, start_pos, end_pos):
+    estimates = {}
+    # crop target track and save it as estimate
+    for target_name, target_track in track.targets.items():
+        estimates[target_name] = target_track.audio[start_pos:end_pos]
+
+    estimates['mixture'] = track.audio[start_pos:end_pos]
+    return estimates
 
 
 if __name__ == '__main__':
