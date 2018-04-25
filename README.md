@@ -9,7 +9,7 @@ The idea is to generate excerpts of 30s [1]
 ### Usage
 
 * Install python3.6 requirements using `pip install -r requirements.txt`
-* Run `generate_previews.py`
+* Run `python generate_previews.py --musb /path/to/musdb -o /path/to/preview_dir`
 * For further applications, you can use the [previews trim generator](https://github.com/faroit/sisec-mus-trim)
 
 ### Download Previews

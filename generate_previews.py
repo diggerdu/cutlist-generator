@@ -5,6 +5,7 @@ from scipy.stats.mstats import gmean
 import csv
 import librosa
 import scipy.signal
+import argparse
 
 
 def create_activation_annotation(
@@ -188,7 +189,11 @@ def compute_H_max(
     return sample_pos, time_pos
 
 
-def generate_previews(dsd, write_estimates=True, preview_length=30):
+def generate_previews(dsd, output_dir=None, preview_length=30):
+
+    if output_dir is None:
+        print("Audio previews not saved, generating csv file only:")
+
     with open('previews.csv', 'w') as csvfile:
         writer = csv.writer(csvfile, delimiter=',')
 
@@ -210,11 +215,11 @@ def generate_previews(dsd, write_estimates=True, preview_length=30):
                 ]
             )
 
-            if write_estimates:
+            if output_dir is not None:
                 mus._save_estimates(
                     crop_track(track, sample_pos[0], sample_pos[1]),
                     track,
-                    estimates_dir='.'
+                    estimates_dir=output_dir
                 )
 
 
@@ -229,5 +234,23 @@ def crop_track(track, start_pos, end_pos):
 
 
 if __name__ == '__main__':
-    mus = musdb.DB()
-    generate_previews(mus, write_estimates=True)
+
+    parser = argparse.ArgumentParser()
+
+    parser.add_argument(
+        '--musdb',
+        help='Path to musdb',
+        type=str,
+    )
+
+    parser.add_argument(
+        '-o',
+        help='Path to save segmented audio.',
+        type=str,
+    )
+
+    args = parser.parse_args()
+
+    mus = musdb.DB(args.musdb)
+
+    generate_previews(mus, args.o)
