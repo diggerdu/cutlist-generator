@@ -189,7 +189,7 @@ def compute_H_max(
     return sample_pos, time_pos
 
 
-def generate_previews(dsd, output_dir=None, preview_length=30):
+def generate_previews(mus, output_dir=None, preview_length=30):
 
     if output_dir is None:
         print("Audio previews not saved, generating csv file only:")
