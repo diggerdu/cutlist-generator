@@ -229,8 +229,15 @@ if __name__ == '__main__':
         action='store_true',
     )
 
+    parser.add_argument(
+        '--duration',
+        help='Duration of the preview in seconds (default is 30s)',
+        type=int,
+        default=30,
+    )
+
     args = parser.parse_args()
 
     mus = musdb.DB(args.musdb, is_wav=args.iswav)
 
-    generate_previews(mus)
+    generate_previews(mus, args.duration)
