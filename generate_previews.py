@@ -219,12 +219,18 @@ if __name__ == '__main__':
 
     parser.add_argument(
         '--musdb',
-        help='Path to musdb',
+        help='Path to the musdb dataset.',
         type=str,
+    )
+
+    parser.add_argument(
+        '--iswav',
+        help='Read musdb wav instead of stems',
+        action='store_true',
     )
 
     args = parser.parse_args()
 
-    mus = musdb.DB(args.musdb)
+    mus = musdb.DB(args.musdb, is_wav=args.iswav)
 
     generate_previews(mus)
