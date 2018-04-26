@@ -193,10 +193,7 @@ def compute_H_max(
     return sample_pos, time_pos
 
 
-def generate_previews(mus, output_dir=None, preview_length=30):
-
-    if output_dir is None:
-        print("Audio previews not saved, generating csv file only:")
+def generate_previews(mus, preview_length=30, test_length=7):
 
     with open('previews.csv', 'w') as csvfile:
         writer = csv.writer(csvfile, delimiter=',')
@@ -220,23 +217,6 @@ def generate_previews(mus, output_dir=None, preview_length=30):
                 ]
             )
 
-            if output_dir is not None:
-                mus._save_estimates(
-                    crop_track(track, sample_pos[0], sample_pos[1]),
-                    track,
-                    estimates_dir=output_dir
-                )
-
-
-def crop_track(track, start_pos, end_pos):
-    estimates = {}
-    # crop target track and save it as estimate
-    for target_name, target_track in track.targets.items():
-        estimates[target_name] = target_track.audio[start_pos:end_pos]
-
-    estimates['mixture'] = track.audio[start_pos:end_pos]
-    return estimates
-
 
 if __name__ == '__main__':
 
@@ -244,18 +224,25 @@ if __name__ == '__main__':
 
     parser.add_argument(
         '--musdb',
-        help='Path to musdb',
+        help='Path to the musdb dataset.',
         type=str,
     )
 
     parser.add_argument(
-        '-o',
-        help='Path to save segmented audio.',
-        type=str,
+        '--iswav',
+        help='Read musdb wav instead of stems',
+        action='store_true',
+    )
+
+    parser.add_argument(
+        '--duration',
+        help='Duration of the preview in seconds (default is 30s)',
+        type=int,
+        default=30,
     )
 
     args = parser.parse_args()
 
-    mus = musdb.DB(args.musdb)
+    mus = musdb.DB(args.musdb, is_wav=args.iswav)
 
-    generate_previews(mus, args.o)
+    generate_previews(mus, args.duration)
