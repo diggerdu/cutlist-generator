@@ -1,6 +1,11 @@
-# SIGSEP MUS 30s Preview Generator
+# SIGSEP MUS 30s Cut-List Generator
 
-This repository aims to generate 30s excerpts from the [MUSDB18](https://sigsep.github.io/musdb.html) music data set.
+This repository aims to generate a cut-list for generating excerpts from the
+[MUSDB18](https://sigsep.github.io/musdb.html) music data set.
+
+Note that this project does not generate audio. Please see
+[sigsep-mus-2018-trim](https://github.com/deeuu/sigsep-mus-2018-trim) which will
+generate audio previews from a cut-list created using this software.
 
 ### Method
 
@@ -9,13 +14,13 @@ The idea is to generate excerpts of 30s [1]
 ### Usage
 
 * Install python3.6 requirements using `pip install -r requirements.txt`
-* Run `python generate_previews.py --musb /path/to/musdb --duration 30`
-* For the [decoded wav dataset](https://github.com/sigsep/sigsep-mus-io), run `python generate_previews.py --musb /path/to/musdb --iswav --duration 30`
-* For further applications, you can use the [previews trim generator](https://github.com/faroit/sisec-mus-trim)
+* Run `python generate_previews.py --musdb /path/to/musdb --duration 30`
+* For the [decoded wav dataset](https://github.com/sigsep/sigsep-mus-io), run `python generate_previews.py --musdb /path/to/musdb --iswav --duration 30`
+* For further applications, you can use the [previews trim generator](https://github.com/deeuu/sigsep-mus-2018-trim)
 
 ### Download Previews
 
-* Pre-computed preview segmentes [can be downloaded here](https://github.com/sigsep/sigsep-mus-previews/releases/download/v0.2/30s_previews.csv)
+* Pre-computed preview segments [can be downloaded here](https://github.com/sigsep/sigsep-mus-previews/releases/download/v0.2/30s_previews.csv)
 
 ### References
 
