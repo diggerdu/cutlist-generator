@@ -193,9 +193,10 @@ def compute_H_max(
     return sample_pos, time_pos
 
 
-def generate_previews(mus, preview_length=30, test_length=7):
+def generate_previews(mus, preview_length=30, filename='previews.csv'):
 
-    with open('previews.csv', 'w') as csvfile:
+    with open(filename, 'w') as csvfile:
+
         writer = csv.writer(csvfile, delimiter=',')
 
         for i, track in enumerate(mus.load_mus_tracks(subsets=['test'])):
@@ -241,8 +242,15 @@ if __name__ == '__main__':
         default=30,
     )
 
+    parser.add_argument(
+        '-o',
+        help='Output filename for the previews (default is previews.csv)',
+        type=str,
+        default='previews.csv',
+    )
+
     args = parser.parse_args()
 
     mus = musdb.DB(args.musdb, is_wav=args.iswav)
 
-    generate_previews(mus, args.duration)
+    generate_previews(mus, args.duration, args.o)
