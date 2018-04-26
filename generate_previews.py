@@ -42,11 +42,11 @@ def create_activation_annotation(
         Energies below this value are set to 0.0
     Returns
     -------
-    C : np.array
-        Array of activation confidence values shape (n_conf, n_stems)
-    stem_index_list : list
-        List of stem indices in the order they appear in C
-
+    C_joint : np.array,  shape=(n_conf,)
+        Array of summed activation confidence values
+    time : np.array,  shape=(n_conf,)
+        Array of time values corresponding the sampling instants of the input
+        track used to obtain C_joint
     """
     H = []
 
@@ -80,7 +80,8 @@ def create_activation_annotation(
     )
 
     # sum up all sources as we are only interested in the peak joint activity
-    return np.sum(C.T, axis=1), time
+    C_joint = np.sum(C.T, axis=1)
+    return C_joint, time
 
 
 def track_energy(wave, win_len, win):
@@ -151,6 +152,7 @@ def compute_H_max(
         win_len=short_window
     )
 
+    # Frame windowing for long-term averaging of the track activity
     longterm_win = int(track.rate * preview_length / (short_window // 2))
 
     H_frames = librosa.util.frame(
@@ -165,8 +167,10 @@ def compute_H_max(
         hop_length=1
     )
 
+    # Long-term averaging (geometric mean of each frame)
     activities = gmean(np.maximum(H_frames, np.finfo(float).eps), axis=0)
 
+    # Take except as the frame with the highest average activity
     excerpt = H_time_in_seconds[(0, -1), np.argmax(activities)]
 
     excerpt[-1] = excerpt[0] + preview_length
@@ -205,6 +209,7 @@ def generate_previews(mus, output_dir=None, preview_length=30):
             sample_pos, time_pos = compute_H_max(
                 track, preview_length=preview_length
             )
+
             writer.writerow(
                 [
                     track.name,
