@@ -14,8 +14,8 @@ The idea is to generate excerpts of 30s [1]
 ### Usage
 
 * Install python3.6 requirements using `pip install -r requirements.txt`
-* Run `python generate_previews.py --musdb /path/to/musdb --duration 30`
-* For the [decoded wav dataset](https://github.com/sigsep/sigsep-mus-io), run `python generate_previews.py --musdb /path/to/musdb --iswav --duration 30`
+* Run `python generate_cutlist.py --musdb /path/to/musdb --duration 30`
+* For the [decoded wav dataset](https://github.com/sigsep/sigsep-mus-io), run `python generate_cutlist.py --musdb /path/to/musdb --iswav --duration 30`
 * For further applications, you can use the [previews trim generator](https://github.com/deeuu/sigsep-mus-2018-trim)
 
 ### Download Previews
