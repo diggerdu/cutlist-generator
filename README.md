@@ -20,7 +20,8 @@ The idea is to generate excerpts of 30s [1]
 
 ### Download Previews
 
-* Pre-computed preview segments [can be downloaded here](https://github.com/sigsep/sigsep-mus-previews/releases/download/v0.2/30s_previews.csv)
+* Pre-computed 30s preview segments [can be downloaded here](https://github.com/sigsep/sigsep-mus-cutlist-generator/releases/download/v0.3/30s_previews.csv)
+* Pre-computed 7s preview segments [can be downloaded here](https://github.com/sigsep/sigsep-mus-cutlist-generator/releases/download/v0.3/7s_previews.csv)
 
 ### References
 
