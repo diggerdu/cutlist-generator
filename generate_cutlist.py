@@ -199,7 +199,7 @@ def generate_cutlist(mus, preview_length=30, filename='previews.csv'):
 
         writer = csv.writer(csvfile, delimiter=',')
 
-        for i, track in enumerate(mus.load_mus_tracks(subsets=['test'])):
+        for i, track in enumerate(mus.load_mus_tracks()):
             if track.duration < preview_length:
                 continue
 
