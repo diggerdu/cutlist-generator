@@ -18,11 +18,11 @@ The idea is to generate excerpts of 30s [1]
 * For the [decoded wav dataset](https://github.com/sigsep/sigsep-mus-io), run `python generate_cutlist.py --musdb /path/to/musdb --iswav --duration 30`
 * For further applications, you can use the [previews trim generator](https://github.com/deeuu/sigsep-mus-2018-trim)
 
-### Download Previews
+### Download Cut-lists
 
-* Pre-computed 30s preview segments [can be downloaded here](https://github.com/sigsep/sigsep-mus-cutlist-generator/releases/download/v0.3/30s_previews.csv). These previews were generated using the original MUSDB18 data set as input.
+* A pre-computed 30s preview cut-list [can be downloaded here](https://github.com/sigsep/sigsep-mus-cutlist-generator/releases/download/v0.3/30s_previews.csv). This cut-list was generated using the original MUSDB18 data set as input.
 
-* Pre-computed 7s preview segments [can be downloaded here](https://github.com/sigsep/sigsep-mus-cutlist-generator/releases/download/v0.3/7s_previews.csv). These previews were generated using the 30s previews as input, meaning that 
+* A pre-computed 7s preview cut-list [can be downloaded here](https://github.com/sigsep/sigsep-mus-cutlist-generator/releases/download/v0.3/7s_previews.csv). This cut-list was generated using the 30s previews as input, meaning that 
 a sample index of 0 (or timestamp of 0s) denotes the beginning of the
 corresponding 30s preview and **not** the start of the original track.
 
