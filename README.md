@@ -20,8 +20,13 @@ The idea is to generate excerpts of 30s [1]
 
 ### Download Previews
 
-* Pre-computed 30s preview segments [can be downloaded here](https://github.com/sigsep/sigsep-mus-cutlist-generator/releases/download/v0.3/30s_previews.csv)
-* Pre-computed 7s preview segments [can be downloaded here](https://github.com/sigsep/sigsep-mus-cutlist-generator/releases/download/v0.3/7s_previews.csv)
+* Pre-computed 30s preview segments [can be downloaded here](https://github.com/sigsep/sigsep-mus-cutlist-generator/releases/download/v0.3/30s_previews.csv). These previews were generated using the original MUSDB18 data set as input.
+
+* Pre-computed 7s preview segments [can be downloaded here](https://github.com/sigsep/sigsep-mus-cutlist-generator/releases/download/v0.3/7s_previews.csv). These previews were generated using the 30s previews as input, meaning that 
+a sample index of 0 (or timestamp of 0s) denotes the beginning of the
+corresponding 30s preview and **not** the start of the original track.
+
+See the [latest release notes](https://github.com/sigsep/sigsep-mus-cutlist-generator/releases).
 
 ### References
 
